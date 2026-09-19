@@ -680,7 +680,7 @@ void BrowserManager::CreateBrowserInternal(
 
     if (focused)
         FocusBrowser(id, true);
-
+OnDeviceReset
     CefWindowInfo windowInfo;
     windowInfo.SetAsWindowless(gta_.GetHwnd());
     windowInfo.external_begin_frame_enabled = true;
@@ -1823,33 +1823,33 @@ void BrowserManager::OnDeviceLost()
 void BrowserManager::OnDeviceReset(IDirect3DDevice9* device)
 {
     // Recreate all browser View resources (2D overlays)
-    for (auto& [id, instance] : browsers_) 
+    for (auto& [id, instance] : browsers_)
     {
-        if (instance) 
+        if (instance)
         {
             LOG_DEBUG("[BrowserManager] Recreating browser {} View resources", id);
             instance->view.OnDeviceReset(device);
         }
     }
-    
+
     // Recreate all WorldRenderer resources (3D world browsers)
-    for (auto& [browserId, renderer] : worldRenderers_) 
+    for (auto& [browserId, renderer] : worldRenderers_)
     {
-        if (renderer) 
+        if (renderer)
         {
             LOG_DEBUG("[BrowserManager] Recreating WorldRenderer for browser {} resources", browserId);
             renderer->OnDeviceReset(device);
         }
     }
-    
+
     // Resume CEF updates and restore the last known browser pixels immediately.
     // Static pages may not produce another OnPaint after Alt+Tab/device reset,
     // especially when another client plugin changes the D3D reset timing (like Samp Addons).
     isCefUpdatesPaused_ = false;
     RestoreBrowserTextures();
     RequestVisibleBrowsersRepaint();
+    SendExternalBeginFrames();
 }
-
 LRESULT BrowserManager::OnWndProcMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     bool native_ui_message_consumed = false;
